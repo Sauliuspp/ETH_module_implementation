@@ -7,11 +7,58 @@ const MAX_GASPRICE: u64 = 16384;
 const MIN_GASPRICE: u64 = 8;
 const SLOTS_PER_EPOCH : u64 = 32;
 const INITIAL_ACTIVE_SHARDS : u64 = 64;
+const TARGET_COMMITTEE_SIZE : u64 = 128;
+
+pub struct BeaconState {
+    pub validators: Vec<Validator>,
+}
+
+pub struct Validator {
+    pub effective_balance: u64,
+    pub slashed: bool,
+    pub activation_eligibility_epoch: u64,
+    pub activation_epoch: u64,
+    pub exit_epoch: u64,
+    pub withdrawable_epoch: u64,
+    pub next_custody_secret_to_reveal: u64,
+    pub max_reveal_lateness: u64,
+}
+
+pub fn get_committee_count_per_slot(state: &BeaconState, epoch: u64) -> u64 {
+
+    // Return the number of committees in each slot for the given ``epoch``.
+
+    return std::cmp::max(1, std::cmp::min(
+        get_active_shard_count(state),
+        get_active_validator_indices(state, epoch).len() as u64 / SLOTS_PER_EPOCH / TARGET_COMMITTEE_SIZE)
+    );
+}
 
 
-// def hash_tree_root(object: SSZSerializable) -> Root
 
-pub fn get_active_shard_count(state: u64/*turi buti BeaconState vietoj u64*/) -> u64 {
+pub fn get_active_validator_indices(state: &BeaconState, epoch: u64) -> Vec<u64> {
+    let mut validators = Vec::<u64>::new();
+    for (i, v) in state.validators.iter().enumerate() {
+        if is_active_validator(v, epoch) {
+            validators.push(i as u64);
+        }
+    }
+    return validators;
+}
+
+
+
+pub fn is_active_validator(validator: &Validator, epoch: u64) -> bool {
+    
+    // Check if ``validator`` is active.
+    
+    if validator.activation_epoch <= epoch && epoch < validator.exit_epoch { return true; }
+    else { return false; }
+}
+
+
+
+pub fn get_active_shard_count(state: &BeaconState) -> u64 {
     
     // Return the number of active shards.
     // Note that this puts an upper bound on the number of committees per slot.
@@ -32,72 +79,9 @@ pub fn compute_offset_slots(start_slot: u64, end_slot: u64) -> Vec<u64> {
 
 
 
-// nesukurtas BeaconState, dar neveiks
-
-//pub fn get_latest_slot_for_shard(state: BeaconState, shard: u64) -> u64 {
-//    return state.shard_states[shard].slot;
-//}
-
-
-
-// nesukurta funkcija, nesukurtas BeaconState
-//pub fn get_shard_proposer_index(beacon_state: BeaconState, slot: Slot, shard: Shard) -> ValidatorIndex{
-//    """
-//    Return the proposer's index of shard block at ``slot``.
-//    """
-//    epoch = compute_epoch_at_slot(slot)
-//    committee = get_shard_committee(beacon_state, epoch, shard)
-//    seed = hash(get_seed(beacon_state, epoch, DOMAIN_SHARD_COMMITTEE) + uint_to_bytes(slot))
-//    r = bytes_to_uint64(seed[:8])
-//    return committee[r % len(committee)]
-//}
-
-
-
 pub fn compute_epoch_at_slot(slot: u64) -> u64 {
     return slot / SLOTS_PER_EPOCH;
 }
-
-
-
-//def get_shard_committee(beacon_state: BeaconState, epoch: Epoch, shard: Shard) -> Sequence[ValidatorIndex]:
-//    """
-//    Return the shard committee of the given ``epoch`` of the given ``shard``.
-//    """
-//    source_epoch = compute_committee_source_epoch(epoch, SHARD_COMMITTEE_PERIOD)
-//    active_validator_indices = get_active_validator_indices(beacon_state, source_epoch)
-//    seed = get_seed(beacon_state, source_epoch, DOMAIN_SHARD_COMMITTEE)
-//    return compute_committee(
-//        indices=active_validator_indices,
-//        seed=seed,
-//        index=shard,
-//        count=get_active_shard_count(beacon_state),
-//)
-
-
-
-//def hash(data: bytes) -> Bytes32
-
-
-
-//def get_seed(state: BeaconState, epoch: Epoch, domain_type: DomainType) -> Bytes32:
-//    """
-//    Return the seed at ``epoch``.
-//    """
-//    mix = get_randao_mix(state, Epoch(epoch + EPOCHS_PER_HISTORICAL_VECTOR - MIN_SEED_LOOKAHEAD - 1))  # Avoid underflow
-//    return hash(domain_type + uint_to_bytes(epoch) + mix)
-
-
-
-// def uint_to_bytes(n: uint) -> bytes
-
-
-
-//def bytes_to_uint64(data: bytes) -> uint64:
-//    """
-//    Return the integer deserialization of ``data`` interpreted as ``ENDIANNESS``-endian.
-//    """
-//    return uint64(int.from_bytes(data, ENDIANNESS))
 
 
 
