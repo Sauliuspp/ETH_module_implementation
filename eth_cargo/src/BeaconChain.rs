@@ -6,12 +6,18 @@ const GASPRICE_ADJUSTMENT_COEFFICIENT: u64 = 8;
 const MAX_GASPRICE: u64 = 16384;
 const MIN_GASPRICE: u64 = 8;
 const SLOTS_PER_EPOCH : u64 = 32;
-
+const INITIAL_ACTIVE_SHARDS : u64 = 64;
 
 
 // def hash_tree_root(object: SSZSerializable) -> Root
 
-
+pub fn get_active_shard_count(state: u64/*turi buti BeaconState vietoj u64*/) -> u64 {
+    
+    // Return the number of active shards.
+    // Note that this puts an upper bound on the number of committees per slot.
+    //
+    return INITIAL_ACTIVE_SHARDS;
+}
 
 pub fn compute_offset_slots(start_slot: u64, end_slot: u64) -> Vec<u64> {
     let mut vector: Vec<u64> = Vec::new();
