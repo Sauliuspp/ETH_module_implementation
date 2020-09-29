@@ -5,9 +5,9 @@ const TARGET_SHARD_BLOCK_SIZE: u64 = 262144;
 const GASPRICE_ADJUSTMENT_COEFFICIENT: u64 = 8;
 const MAX_GASPRICE: u64 = 16384;
 const MIN_GASPRICE: u64 = 8;
-const SLOTS_PER_EPOCH : u64 = 32;
-const INITIAL_ACTIVE_SHARDS : u64 = 64;
-const TARGET_COMMITTEE_SIZE : u64 = 128;
+const SLOTS_PER_EPOCH: u64 = 32;
+const INITIAL_ACTIVE_SHARDS: u64 = 64;
+const TARGET_COMMITTEE_SIZE: u64 = 128;
 
 pub struct BeaconState {
     pub validators: Vec<Validator>,
@@ -25,16 +25,18 @@ pub struct Validator {
 }
 
 pub fn get_committee_count_per_slot(state: &BeaconState, epoch: u64) -> u64 {
-
     // Return the number of committees in each slot for the given ``epoch``.
 
-    return std::cmp::max(1, std::cmp::min(
-        get_active_shard_count(state),
-        get_active_validator_indices(state, epoch).len() as u64 / SLOTS_PER_EPOCH / TARGET_COMMITTEE_SIZE)
-    );
+    std::cmp::max(
+        1,
+        std::cmp::min(
+            get_active_shard_count(state),
+            get_active_validator_indices(state, epoch).len() as u64
+                / SLOTS_PER_EPOCH
+                / TARGET_COMMITTEE_SIZE,
+        ),
+    )
 }
-
-
 
 pub fn get_active_validator_indices(state: &BeaconState, epoch: u64) -> Vec<u64> {
     let mut validators = Vec::<u64>::new();
@@ -43,27 +45,20 @@ pub fn get_active_validator_indices(state: &BeaconState, epoch: u64) -> Vec<u64>
             validators.push(i as u64);
         }
     }
-    return validators;
+    validators
 }
-
-
 
 pub fn is_active_validator(validator: &Validator, epoch: u64) -> bool {
-    
     // Check if ``validator`` is active.
-    
-    if validator.activation_epoch <= epoch && epoch < validator.exit_epoch { return true; }
-    else { return false; }
+
+    validator.activation_epoch <= epoch && epoch < validator.exit_epoch
 }
 
-
-
-pub fn get_active_shard_count(state: &BeaconState) -> u64 {
-    
+pub fn get_active_shard_count(_state: &BeaconState) -> u64 {
     // Return the number of active shards.
     // Note that this puts an upper bound on the number of committees per slot.
     //
-    return INITIAL_ACTIVE_SHARDS;
+    INITIAL_ACTIVE_SHARDS
 }
 
 pub fn compute_offset_slots(start_slot: u64, end_slot: u64) -> Vec<u64> {
@@ -74,34 +69,27 @@ pub fn compute_offset_slots(start_slot: u64, end_slot: u64) -> Vec<u64> {
             vector.push(start_slot + x);
         }
     }
-    return vector;
+    vector
 }
-
-
 
 pub fn compute_epoch_at_slot(slot: u64) -> u64 {
-    return slot / SLOTS_PER_EPOCH;
+    slot / SLOTS_PER_EPOCH
 }
-
-
 
 pub fn compute_updated_gasprice(prev_gasprice: u64, shard_block_length: u64) -> u64 {
     if shard_block_length > TARGET_SHARD_BLOCK_SIZE {
-
         let mut delta = prev_gasprice * (shard_block_length - TARGET_SHARD_BLOCK_SIZE);
 
-        delta = delta / TARGET_SHARD_BLOCK_SIZE;
-        delta = delta / GASPRICE_ADJUSTMENT_COEFFICIENT;
+        delta /= TARGET_SHARD_BLOCK_SIZE;
+        delta /= GASPRICE_ADJUSTMENT_COEFFICIENT;
 
-        return cmp::min(prev_gasprice + delta, MAX_GASPRICE);
-
+        cmp::min(prev_gasprice + delta, MAX_GASPRICE)
     } else {
-
         let mut delta = prev_gasprice * (TARGET_SHARD_BLOCK_SIZE - shard_block_length);
 
-        delta = delta / TARGET_SHARD_BLOCK_SIZE;
-        delta = delta / GASPRICE_ADJUSTMENT_COEFFICIENT;
-        
-        return cmp::max(prev_gasprice, MIN_GASPRICE + delta) - delta;
+        delta /= TARGET_SHARD_BLOCK_SIZE;
+        delta /= GASPRICE_ADJUSTMENT_COEFFICIENT;
+
+        cmp::max(prev_gasprice, MIN_GASPRICE + delta) - delta
     }
 }

@@ -1,7 +1,7 @@
-mod BeaconChain;
+mod beacon_chain;
 
 fn main() {
-    let mut validator1 = BeaconChain::Validator {
+    let validator1 = beacon_chain::Validator {
         effective_balance: 50,
         slashed: true,
         activation_eligibility_epoch: 5,
@@ -12,7 +12,7 @@ fn main() {
         max_reveal_lateness: 50,
     };
 
-    let mut validator2 = BeaconChain::Validator {
+    let validator2 = beacon_chain::Validator {
         effective_balance: 10,
         slashed: true,
         activation_eligibility_epoch: 10,
@@ -23,21 +23,21 @@ fn main() {
         max_reveal_lateness: 10,
     };
 
-    let mut beaconState = BeaconChain::BeaconState{
-        validators: vec![validator1, validator2]
+    let beacon_state = beacon_chain::BeaconState {
+        validators: vec![validator1, validator2],
     };
 
-    let result = BeaconChain::get_committee_count_per_slot(&beaconState, 7);
+    beacon_chain::get_committee_count_per_slot(&beacon_state, 7);
+    //let result = beacon_chain::get_committee_count_per_slot(&beacon_state, 7);
     //println!("{} ", result);
-    
+
     println!("Hello, world!");
-    
 }
 
 #[cfg(test)]
 #[test]
 fn test1() {
-    let mut validator1 = BeaconChain::Validator {
+    let validator1 = beacon_chain::Validator {
         effective_balance: 50,
         slashed: true,
         activation_eligibility_epoch: 5,
@@ -48,7 +48,7 @@ fn test1() {
         max_reveal_lateness: 50,
     };
 
-    let mut validator2 = BeaconChain::Validator {
+    let validator2 = beacon_chain::Validator {
         effective_balance: 10,
         slashed: true,
         activation_eligibility_epoch: 10,
@@ -59,8 +59,11 @@ fn test1() {
         max_reveal_lateness: 10,
     };
 
-    let mut beaconState = BeaconChain::BeaconState{
-        validators: vec![validator1, validator2]
+    let beacon_state = beacon_chain::BeaconState {
+        validators: vec![validator1, validator2],
     };
-    assert_eq!(1, BeaconChain::get_committee_count_per_slot(&beaconState, 7));
+    assert_eq!(
+        1,
+        beacon_chain::get_committee_count_per_slot(&beacon_state, 7)
+    );
 }
